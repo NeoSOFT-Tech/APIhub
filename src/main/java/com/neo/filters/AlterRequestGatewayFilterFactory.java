@@ -8,42 +8,39 @@ import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFac
 import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyRequestBodyGatewayFilterFactory;
 import org.springframework.stereotype.Component;
 
-import com.neo.audit.Auditor;
+import com.neo.exceptions.GatewayExceptionHandler;
 
 @Component
 public class AlterRequestGatewayFilterFactory
 		extends AbstractGatewayFilterFactory<AlterRequestGatewayFilterFactory.Config> {
 
-	private final Auditor auditor;
 	private final BodyMassager bodyMassager;
+	private final GatewayExceptionHandler gatewayExceptionHandler;
 
 	@Autowired
-	public AlterRequestGatewayFilterFactory(Auditor auditor, BodyMassager bodyMassager) {
+	public AlterRequestGatewayFilterFactory(BodyMassager bodyMassager,
+			GatewayExceptionHandler gatewayExceptionHandler) {
 		super(Config.class);
-		this.auditor = auditor;
 		this.bodyMassager = bodyMassager;
+		this.gatewayExceptionHandler = gatewayExceptionHandler;
 	}
 
 	@Override
 	public GatewayFilter apply(Config config) {
 		return (exchange, chain) -> {
 			ModifyRequestBodyGatewayFilterFactory.Config modifyRequestConfig = new ModifyRequestBodyGatewayFilterFactory.Config()
-					.setRewriteFunction(String.class, String.class, (exchange1, originalRequestBody) -> {
-						// TODO : Use below Config class attributes and make necessary changes
-						auditor.auditRequest(exchange, originalRequestBody);
-						return bodyMassager.massageRequest(exchange, originalRequestBody, config);
-					});
-			return new ModifyRequestBodyGatewayFilterFactory().apply(modifyRequestConfig).filter(exchange, chain);
+					.setRewriteFunction(String.class, String.class, (exchange1, originalRequestBody) -> bodyMassager
+							.massageRequest(exchange, originalRequestBody, config));
+			return new ModifyRequestBodyGatewayFilterFactory().apply(modifyRequestConfig).filter(exchange, chain)
+					.onErrorMap(gatewayExceptionHandler::handleError);
 		};
 	}
 
 	public static class Config {
 		private boolean isProxy;
 		private boolean isEncrypted;
-		private boolean isAutoMsgId;
 		private boolean audit;
-		private String encryptionType;
-		private Map<String, Object> encryptionDetails;
+		private Map<String, String> encryptionDetails;
 
 		public boolean isProxy() {
 			return isProxy;
@@ -61,14 +58,6 @@ public class AlterRequestGatewayFilterFactory
 			this.isEncrypted = isEncrypted;
 		}
 
-		public boolean isAutoMsgId() {
-			return isAutoMsgId;
-		}
-
-		public void setAutoMsgId(boolean isAutoMsgId) {
-			this.isAutoMsgId = isAutoMsgId;
-		}
-
 		public boolean isAudit() {
 			return audit;
 		}
@@ -77,19 +66,11 @@ public class AlterRequestGatewayFilterFactory
 			this.audit = audit;
 		}
 
-		public String getEncryptionType() {
-			return encryptionType;
-		}
-
-		public void setEncryptionType(String encryptionType) {
-			this.encryptionType = encryptionType;
-		}
-
-		public Map<String, Object> getEncryptionDetails() {
+		public Map<String, String> getEncryptionDetails() {
 			return encryptionDetails;
 		}
 
-		public void setEncryptionDetails(Map<String, Object> encryptionDetails) {
+		public void setEncryptionDetails(Map<String, String> encryptionDetails) {
 			this.encryptionDetails = encryptionDetails;
 		}
 	}

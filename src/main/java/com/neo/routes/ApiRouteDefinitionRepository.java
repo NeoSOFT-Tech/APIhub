@@ -3,6 +3,7 @@ package com.neo.routes;
 import static java.util.Collections.synchronizedMap;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
 import com.neo.services.RouteDefinitionService;
+import com.neo.validator.RoutesValidator;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -27,23 +29,32 @@ public class ApiRouteDefinitionRepository implements RouteDefinitionRepository {
 	private final Logger logger = LoggerFactory.getLogger(ApiRouteDefinitionRepository.class);
 	private final Map<String, RouteDefinition> routes = synchronizedMap(new LinkedHashMap<String, RouteDefinition>());
 	private final RouteDefinitionService routeDefinitionService;
+	private final RoutesValidator routesValidator;
 
 	@Autowired
-	public ApiRouteDefinitionRepository(RouteDefinitionService routeDefinitionService) {
+	public ApiRouteDefinitionRepository(RouteDefinitionService routeDefinitionService,
+			RoutesValidator routesValidator) {
 		super();
 		this.routeDefinitionService = routeDefinitionService;
+		this.routesValidator = routesValidator;
 	}
 
 	@PostConstruct
 	public void initRoutes() {
 		routes.clear();
-		routeDefinitionService.fetchRouteDefinitions().forEach(routeDefinition -> {
+		List<RouteDefinition> fetchRouteDefinitions = routeDefinitionService.fetchRouteDefinitions();
+		fetchRouteDefinitions.forEach(routeDefinition -> {
 			if (ObjectUtils.isEmpty(routeDefinition.getId())) {
 				logger.error("id may not be empty");
 			} else {
-				routes.put(routeDefinition.getId(), routeDefinition);
+				if (routesValidator.validate(routeDefinition)) {
+					routes.put(routeDefinition.getId(), routeDefinition);
+				} else
+					logger.warn("Invalid route definition by id : {}", routeDefinition.getId());
 			}
 		});
+		logger.info("Total no of routes initialized successfully : {}", routes.size());
+		logger.error("Total no of routes failed to initialize : {}", fetchRouteDefinitions.size() - routes.size());
 	}
 
 	@Override
@@ -52,7 +63,9 @@ public class ApiRouteDefinitionRepository implements RouteDefinitionRepository {
 			if (ObjectUtils.isEmpty(r.getId())) {
 				return Mono.error(new IllegalArgumentException("id may not be empty"));
 			}
-			routes.put(r.getId(), r);
+			if (routesValidator.validate(r)) {
+				routes.put(r.getId(), r);
+			}
 			return Mono.empty();
 		});
 	}

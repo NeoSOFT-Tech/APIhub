@@ -13,4 +13,10 @@ public class CryptConstants {
 	public static final String PASSWORD = "password";
 	public static final String PUBLIC_KEY = "publicKey";
 	public static final String PRIVATE_KEY = "privateKey";
+	public static final String ARMORED = "armored";
+	public static final String HASH_ALGORITHM_TAGS = "hashAlgorithmTags";
+	public static final String SYMMETRIC_KEY_ALGORITHM_TAGS = "symmetricKeyAlgorithmTags";
+	public static final String WITH_INTEGRITY_PACKET = "withIntegrityPacket";
+	public static final String VERIFY_SIGNATURE = "verifySignature";
+	public static final String PRIVATE_KEY_PASSWORD = "privateKeyPassword";
 }

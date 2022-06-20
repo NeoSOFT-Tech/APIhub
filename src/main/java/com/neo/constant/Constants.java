@@ -6,7 +6,5 @@ public class Constants {
 		super();
 	}
 
-	public static final String MSG_ID = "msgid";
-	public static final String MSG_RRN = "msgrrn";
-
+	public static final String ENCRYPTED = "encrypted";
 }

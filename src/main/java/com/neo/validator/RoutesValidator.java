@@ -25,9 +25,7 @@ public class RoutesValidator {
 	public boolean validate(RouteDefinition routeDefinition) {
 		try {
 			routeDefinition.getFilters().forEach(filterDefinition -> {
-				filterDefinition.getName();
-				filterDefinition.getArgs();
-				if (filterDefinition.getArgs().containsKey(Constants.ENCRYPTED)) {
+				if (null != filterDefinition.getArgs() && filterDefinition.getArgs().containsKey(Constants.ENCRYPTED)) {
 					boolean encrypted = Boolean.parseBoolean(filterDefinition.getArgs().get(Constants.ENCRYPTED));
 					if (encrypted) {
 						validatorFactory.validate(resolveFilterArgs(filterDefinition.getArgs()));

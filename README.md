@@ -2,5 +2,6 @@
 
 Spring cloud gateway with custom features(highly configurable via filters) such as:
 
-- auditing
-- encryptions (aes-gcm, RSA, PGP and 3 DES)
+- auditing (logger level : TODO : Decide audit source)
+- Cipher suites added (aes-gcm, RSA, PGP and 3 DES)
+- Redis Rate limiter

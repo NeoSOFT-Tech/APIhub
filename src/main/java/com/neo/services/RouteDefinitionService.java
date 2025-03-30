@@ -1,5 +1,6 @@
 package com.neo.services;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -24,10 +25,10 @@ public class RouteDefinitionService {
 		List<RouteDefinition> gatewayDefinitions;
 		logger.info("Fetching GatewayDefinition from URL: {}", routeConfigUrl);
 		RestTemplate restTemplate = new RestTemplate();
-		ResponseEntity<List<RouteDefinition>> response = restTemplate.exchange(routeConfigUrl, HttpMethod.GET, null,
-				new ParameterizedTypeReference<List<RouteDefinition>>() {
-				});
-		gatewayDefinitions = response.getBody();
-		return gatewayDefinitions;
+//		ResponseEntity<List<RouteDefinition>> response = restTemplate.exchange(routeConfigUrl, HttpMethod.GET, null,
+//				new ParameterizedTypeReference<List<RouteDefinition>>() {
+//				});
+//		gatewayDefinitions = response.getBody();
+		return Arrays.asList(restTemplate.getForObject(routeConfigUrl,RouteDefinition[].class));
 	}
 }
